@@ -1,0 +1,27 @@
+WHITESPACE = _{ " " | "\t" | "\r" }
+COMMENT = _{ "*" ~ (!"\n" ~ ANY)* ~ NEWLINE}
+string = { (!(WHITESPACE | " " | NEWLINE) ~ (ASCII | "_" | ASCII_DIGIT))+ }
+number = @{
+    "-"?
+    ~ ("0" | ASCII_NONZERO_DIGIT ~ ASCII_DIGIT*)
+    ~ ("." ~ ASCII_DIGIT*)?
+    ~ (^"e" ~ ("+" | "-")? ~ ASCII_DIGIT+)?
+}
+
+PIN= @{ string }
+CKT_NAME = @{ string }
+CKT = { ".SUBCKT" ~ CKT_NAME ~ PIN* ~ NEWLINE}
+
+ELEM_NAME = @{string}
+PIN_PARAM = @{string}
+
+ELEMENT_M = { "M" ~ ELEM_NAME ~ PIN_PARAM* }
+ELEMENT_X = { "X" ~ ELEM_NAME ~ PIN_PARAM* }
+ELEMENT_R = { "r" ~ ELEM_NAME ~ PIN_PARAM* }
+ELEMENT_CONTINUE = { "+" ~ PIN_PARAM* }
+
+CKT_BODY = { ((ELEMENT_M | ELEMENT_X | ELEMENT_R) | ELEMENT_CONTINUE) }
+
+CKT_END = { ".ENDS" ~ CKT_NAME }
+SUBCKT = { CKT ~ (CKT_BODY ~ NEWLINE)* ~ CKT_END }
+CDL = { SOI ~ (SUBCKT | NEWLINE)* ~ EOI}
